@@ -129,6 +129,13 @@ export default function Home() {
           backdrop-filter: blur(6px);
           z-index: 9;
         }
+        html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.hero {
+  overflow: hidden;
+}
       `}</style>
     </>
   )
