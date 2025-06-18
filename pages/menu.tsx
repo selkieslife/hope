@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 const dietColors: Record<string, string> = {
   veg: 'bg-green-100 text-green-800',
   egg: 'bg-yellow-100 text-yellow-800',
-  'non-veg': 'bg-red-100 text-red-800'
+  'non-veg': 'bg-red-100 text-red-800',
 }
 
 export default function MenuPage() {
@@ -22,16 +22,15 @@ export default function MenuPage() {
     fetchProducts()
   }, [])
 
-  const filtered =
-    filter === 'all'
-      ? products
-      : products.filter((p) => p.diet_type === filter)
+  const filtered = filter === 'all'
+    ? products
+    : products.filter((p) => p.diet_type === filter)
 
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <h1 className="text-2xl mb-4">Explore Our Global Bakes</h1>
 
-      {/* FILTERS */}
+      {/* FILTER BUTTONS */}
       <div className="flex gap-2 mb-6 text-sm">
         {['all', 'veg', 'egg', 'non-veg'].map((type) => (
           <button
@@ -48,7 +47,7 @@ export default function MenuPage() {
         ))}
       </div>
 
-      {/* GRID */}
+      {/* PRODUCT GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.map((item) => (
           <div
@@ -65,7 +64,9 @@ export default function MenuPage() {
                 {item.diet_type || 'unspecified'}
               </span>
             </div>
-            {item.description && <p className="text-sm text-gray-700">{item.description}</p>}
+            {item.description && (
+              <p className="text-sm text-gray-700">{item.description}</p>
+            )}
 
             <div className="text-sm mt-auto">
               {item.is_available === false ? (
