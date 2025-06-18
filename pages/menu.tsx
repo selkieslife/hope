@@ -12,16 +12,21 @@ export default function MenuPage() {
   const [products, setProducts] = useState<any[]>([])
   const [filter, setFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
 
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      const { data } = await supabase
-        .from('Products')
-        .select('*')
-        .order('name')
-      setProducts(data || [])
-    }
-    fetchProducts()
-  }, [])
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from('Products') // make sure this matches your table name exactly
+      .select('*')
+      .order('name')
+
+    console.log('DATA FROM SUPABASE:', data)
+    console.log('SUPABASE ERROR:', error)
+
+    setProducts(data || [])
+  }
+  fetchProducts()
+}, [])
 
   const filtered = filter === 'all'
     ? products
