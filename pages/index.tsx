@@ -27,27 +27,27 @@ export default function Home() {
         >
           {[
             {
-              image: '/images/Long John Cruller - Dark Chocolate.webp',
+              image: '/images/LJCDC.webp',
               title: 'Long John Cruller',
               desc: 'Dark chocolate meet hot dog, wildly addictive'
             },
             {
-              image: '/images/Japanese Cream Puff - Chocolate.webp',
+              image: '/images/JCPC.webp',
               title: 'Japanese Cream Puff',
               desc: 'Filled with clouds and joy'
             },
             {
-              image: '/images/Australian Fairy Bread Roll.webp',
+              image: '/images/AFBR.webp',
               title: 'Fairy Bread Roll',
               desc: 'Sprinkled nostalgia from Down Under'
             },
             {
-              image: '/images/Blueberry Cheesecake.webp',
+              image: '/images/BCC.webp',
               title: 'Blueberry Cheesecake',
               desc: 'Cheesecake, but grown-up'
             },
             {
-              image: '/images/Orange Custard Bread.webp',
+              image: '/images/OCB.webp',
               title: 'Orange Custard Bread',
               desc: 'Zest meets crumb in this citrus-laced hit'
             }
