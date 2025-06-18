@@ -15,7 +15,7 @@ export default function MenuPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       const { data } = await supabase
-        .from('products')
+        .from('Products')
         .select('*')
         .order('name')
       setProducts(data || [])
