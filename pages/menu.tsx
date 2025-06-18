@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '../lib/supabaseClient'
+
 
 const dietColors: Record<string, string> = {
   veg: 'bg-green-100 text-green-800',
