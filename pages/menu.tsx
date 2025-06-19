@@ -29,12 +29,16 @@ export default function MenuPage() {
   })
 
   // Group by subcategory or fallback to category
-  const grouped = filtered.reduce((acc, item) => {
-    const groupKey = item.subcategory || item.category || 'Others'
-    if (!acc[groupKey]) acc[groupKey] = []
-    acc[groupKey].push(item)
-    return acc
-  }, {} as Record<string, any[]>)
+const grouped = filtered.reduce((acc, item) => {
+  const groupKey = (item.subcategory || item.category || 'Misc').trim()
+  if (!groupKey) return acc
+  acc[groupKey] = acc[groupKey] || []
+  acc[groupKey].push(item)
+  return acc
+}, {} as Record<string, any[]>)
+
+console.log("Grouped data:", grouped)
+
 
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
