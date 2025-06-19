@@ -11,6 +11,7 @@ export default function MenuPage() {
   const [products, setProducts] = useState<any[]>([])
   const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -28,23 +29,22 @@ export default function MenuPage() {
     return matchDiet && matchCategory
   })
 
-  // Group by subcategory or fallback to category
-const grouped = filtered.reduce((acc, item) => {
-  const groupKey = (item.subcategory || item.category || 'Misc').trim()
-  if (!groupKey) return acc
-  acc[groupKey] = acc[groupKey] || []
-  acc[groupKey].push(item)
-  return acc
-}, {} as Record<string, any[]>)
+  const grouped = filtered.reduce((acc, item) => {
+    const groupKey = (item.subcategory || item.category || 'Misc').trim()
+    if (!acc[groupKey]) acc[groupKey] = []
+    acc[groupKey].push(item)
+    return acc
+  }, {} as Record<string, any[]>)
 
-console.log("Grouped data:", grouped)
-
+  const toggleGroup = (group: string) => {
+    setExpandedGroups((prev) => ({ ...prev, [group]: !prev[group] }))
+  }
 
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <h1 className="text-2xl mb-4">Explore Our Global Bakes</h1>
 
-      {/* DIET FILTERS */}
+      {/* DIET FILTER */}
       <div className="flex gap-2 mb-3 text-sm flex-wrap">
         {['all', 'veg', 'egg', 'non-veg'].map((type) => (
           <button
@@ -61,7 +61,7 @@ console.log("Grouped data:", grouped)
         ))}
       </div>
 
-      {/* CATEGORY FILTERS */}
+      {/* CATEGORY FILTER */}
       <div className="flex gap-2 mb-6 text-sm flex-wrap">
         {['all', ...categories].map((cat) => (
           <button
@@ -78,45 +78,54 @@ console.log("Grouped data:", grouped)
         ))}
       </div>
 
-      {/* GROUPED PRODUCT DISPLAY */}
-      {Object.keys(grouped).map((groupName) => (
-        <div key={groupName} className="mb-8">
-          <h2 className="text-lg font-bold mb-2 border-b border-gray-300 pb-1">{groupName}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {grouped[groupName].map((item) => (
-              <div
-                key={item.id}
-                className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-md font-semibold">{item.name}</h3>
-                  {item.diet_type && (
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        dietColors[item.diet_type] || 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {item.diet_type}
-                    </span>
+      {/* GROUPED PRODUCTS */}
+      {Object.keys(grouped).map((group) => (
+        <div key={group} className="mb-6">
+          <button
+            onClick={() => toggleGroup(group)}
+            className="w-full text-left text-lg font-semibold mb-2 flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md"
+          >
+            {group}
+            <span>{expandedGroups[group] ? '−' : '+'}</span>
+          </button>
+
+          {expandedGroups[group] && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {grouped[group].map((item) => (
+                <div
+                  key={item.id}
+                  className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-md font-semibold">{item.name}</h3>
+                    {item.diet_type && (
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          dietColors[item.diet_type] || 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {item.diet_type}
+                      </span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-sm text-gray-700">{item.description}</p>
                   )}
+                  <div className="text-sm mt-auto">
+                    {item.is_available === false ? (
+                      <span className="text-red-500 font-semibold">Sold Out</span>
+                    ) : item.stock_quantity !== null && item.stock_quantity <= 3 ? (
+                      <span className="text-orange-600 font-medium">
+                        Only {item.stock_quantity} left!
+                      </span>
+                    ) : (
+                      <span className="text-green-600 font-medium">In Stock</span>
+                    )}
+                  </div>
                 </div>
-                {item.description && (
-                  <p className="text-sm text-gray-700">{item.description}</p>
-                )}
-                <div className="text-sm mt-auto">
-                  {item.is_available === false ? (
-                    <span className="text-red-500 font-semibold">Sold Out</span>
-                  ) : item.stock_quantity !== null && item.stock_quantity <= 3 ? (
-                    <span className="text-orange-600 font-medium">
-                      Only {item.stock_quantity} left!
-                    </span>
-                  ) : (
-                    <span className="text-green-600 font-medium">In Stock</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>
