@@ -55,13 +55,17 @@ export default function MenuPage() {
           >
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">{item.name}</h2>
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${
-                  dietColors[item.diet_type] || 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {item.diet_type || 'unspecified'}
-              </span>
+             {item.diet_type ? (
+  <span
+    className={`text-xs px-2 py-1 rounded-full ${
+      dietColors[item.diet_type] || 'bg-gray-100 text-gray-800'
+    }`}
+  >
+    {item.diet_type}
+  </span>
+) : null}
+
+              
             </div>
             {item.description && (
               <p className="text-sm text-gray-700">{item.description}</p>
