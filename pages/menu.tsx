@@ -21,10 +21,23 @@ export default function MenuPage() {
     fetchProducts()
   }, [])
 
-  const categories = Array.from(
-    new Set(products.map((p) => p.category?.toLowerCase()))
-  ).filter(Boolean)
+ const priorityOrder = ['Artisanal Breads', 'Italian Pastries', 'Japanese Pastries']
 
+const categories = Array.from(
+  new Set(products.map((p) => p.category?.toLowerCase()))
+).filter(Boolean)
+
+categories.sort((a, b) => {
+  const aIndex = priorityOrder.indexOf(a)
+  const bIndex = priorityOrder.indexOf(b)
+
+  if (aIndex === -1 && bIndex === -1) return a.localeCompare(b) // normal sort
+  if (aIndex === -1) return 1
+  if (bIndex === -1) return -1
+  return aIndex - bIndex
+})
+
+  
   const filtered = products.filter((p) => {
     const matchDiet =
       dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
