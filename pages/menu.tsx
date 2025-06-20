@@ -24,8 +24,9 @@ export default function MenuPage() {
   const categories = Array.from(new Set(products.map(p => p.category))).filter(Boolean)
 
   const filtered = products.filter(p => {
-    const matchDiet = dietFilter === 'all' || p.diet_type === dietFilter
-    const matchCategory = categoryFilter === 'all' || p.category === categoryFilter
+    const matchDiet = dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
+    const matchCategory = categoryFilter === 'all' || (p.category && p.category.toLowerCase() === categoryFilter)
+    const categories = Array.from(new Set(products.map(p => p.category?.toLowerCase()))).filter(Boolean)    
     return matchDiet && matchCategory
   })
 
