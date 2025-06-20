@@ -21,12 +21,15 @@ export default function MenuPage() {
     fetchProducts()
   }, [])
 
-  const categories = Array.from(new Set(products.map(p => p.category))).filter(Boolean)
+  const categories = Array.from(
+    new Set(products.map((p) => p.category?.toLowerCase()))
+  ).filter(Boolean)
 
-  const filtered = products.filter(p => {
-    const matchDiet = dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
-    const matchCategory = categoryFilter === 'all' || (p.category && p.category.toLowerCase() === categoryFilter)
-    const categories = Array.from(new Set(products.map(p => p.category?.toLowerCase()))).filter(Boolean)    
+  const filtered = products.filter((p) => {
+    const matchDiet =
+      dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
+    const matchCategory =
+      categoryFilter === 'all' || (p.category && p.category.toLowerCase() === categoryFilter)
     return matchDiet && matchCategory
   })
 
@@ -63,21 +66,24 @@ export default function MenuPage() {
       </div>
 
       {/* CATEGORY DROPDOWN */}
-<select
-  value={categoryFilter}
-  onChange={(e) => setCategoryFilter(e.target.value)}
-  className="mb-6 px-3 py-2 border rounded-md bg-white shadow-sm text-sm"
->
-  <option value="all">All Categories</option>
-  {categories.map((cat) => (
-    <option key={cat} value={cat}>
-      {cat.charAt(0).toUpperCase() + cat.slice(1)}
-    </option>
-  ))}
-</select>
+      <select
+        value={categoryFilter}
+        onChange={(e) => setCategoryFilter(e.target.value)}
+        className="mb-6 px-3 py-2 border rounded-md bg-white shadow-sm text-sm"
+      >
+        <option value="all">All Categories</option>
+        {categories.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+          </option>
+        ))}
+      </select>
 
+      {/* EMPTY STATE */}
+      {filtered.length === 0 && (
+        <p className="text-gray-600 text-sm italic">No products match this filter.</p>
+      )}
 
-      
       {/* GROUPED PRODUCTS */}
       {Object.keys(grouped).map((group) => (
         <div key={group} className="mb-6">
@@ -101,7 +107,7 @@ export default function MenuPage() {
                     {item.diet_type && (
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          dietColors[item.diet_type] || 'bg-gray-100 text-gray-800'
+                          dietColors[item.diet_type.toLowerCase()] || 'bg-gray-100 text-gray-800'
                         }`}
                       >
                         {item.diet_type}
