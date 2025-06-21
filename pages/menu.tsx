@@ -10,6 +10,7 @@ const dietColors: Record<string, string> = {
 const [expandedDesc, setExpandedDesc] = useState<Record<number, boolean>>({})
 
 
+
 export default function MenuPage() {
   const [products, setProducts] = useState<any[]>([])
   const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
