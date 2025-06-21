@@ -13,13 +13,23 @@ type Product = {
   stock_quantity?: number
 }
 
+type DaySelections = Record<
+  Day,
+  {
+    [productId: number]: {
+      product: Product
+      quantity: number
+    }
+  }
+>
+
 export default function SubscribePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [selectedDay, setSelectedDay] = useState<Day>('Tuesday')
-  const [selections, setSelections] = useState<Record<Day, Product[]>>({
-    Tuesday: [],
-    Thursday: [],
-    Saturday: [],
+  const [selections, setSelections] = useState<DaySelections>({
+    Tuesday: {},
+    Thursday: {},
+    Saturday: {},
   })
 
   useEffect(() => {
@@ -34,18 +44,53 @@ export default function SubscribePage() {
     fetchProducts()
   }, [])
 
-  const toggleProduct = (day: Day, product: Product) => {
-    const current = selections[day]
-    const exists = current.find((p) => p.id === product.id)
-    const updated = exists
-      ? current.filter((p) => p.id !== product.id)
-      : [...current, product]
-    setSelections({ ...selections, [day]: updated })
+  const increment = (day: Day, product: Product) => {
+    setSelections((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [product.id]: {
+          product,
+          quantity: (prev[day][product.id]?.quantity || 0) + 1,
+        },
+      },
+    }))
+  }
+
+  const decrement = (day: Day, product: Product) => {
+    setSelections((prev) => {
+      const currentQty = prev[day][product.id]?.quantity || 0
+      if (currentQty <= 1) {
+        const updated = { ...prev[day] }
+        delete updated[product.id]
+        return { ...prev, [day]: updated }
+      }
+      return {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [product.id]: {
+            product,
+            quantity: currentQty - 1,
+          },
+        },
+      }
+    })
   }
 
   const copyFromDay = (from: Day, to: Day) => {
-    setSelections((prev) => ({ ...prev, [to]: prev[from] }))
+    setSelections((prev) => ({
+      ...prev,
+      [to]: { ...prev[from] },
+    }))
   }
+
+  const groupedProducts = products.reduce((acc, item) => {
+    const group = item.category || 'Misc'
+    if (!acc[group]) acc[group] = []
+    acc[group].push(item)
+    return acc
+  }, {} as Record<string, Product[]>)
 
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
@@ -89,32 +134,50 @@ export default function SubscribePage() {
           ))}
       </div>
 
-      {/* PRODUCT SELECTION */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {products.map((item) => {
-          const isSelected = selections[selectedDay].some((p) => p.id === item.id)
-          return (
-            <div
-              key={item.id}
-              onClick={() => toggleProduct(selectedDay, item)}
-              className={`cursor-pointer border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2 transition ${
-                isSelected ? 'ring-2 ring-orange-400' : ''
-              }`}
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="text-md font-semibold">{item.name}</h3>
-                {isSelected && <span className="text-xs">✓</span>}
-              </div>
-              {item.description && (
-                <p className="text-sm text-gray-700">{item.description}</p>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      {/* PRODUCT GRID – Grouped */}
+      {Object.entries(groupedProducts).map(([group, items]) => (
+        <div key={group} className="mb-6">
+          <h2 className="text-lg font-semibold mb-2">{group}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {items.map((item) => {
+              const qty = selections[selectedDay][item.id]?.quantity || 0
+              return (
+                <div
+                  key={item.id}
+                  className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-md font-semibold">{item.name}</h3>
+                  </div>
+                  {item.description && (
+                    <p className="text-sm text-gray-700">{item.description}</p>
+                  )}
+
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-2 mt-auto">
+                    <button
+                      onClick={() => decrement(selectedDay, item)}
+                      className="px-2 py-1 border rounded text-xl"
+                    >
+                      −
+                    </button>
+                    <span className="text-md w-6 text-center">{qty}</span>
+                    <button
+                      onClick={() => increment(selectedDay, item)}
+                      className="px-2 py-1 border rounded text-xl"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
 
       {/* NEXT STEP PLACEHOLDER */}
-      <div className="text-right">
+      <div className="text-right mt-8">
         <button className="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600">
           Next: Choose Schedule →
         </button>
