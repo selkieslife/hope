@@ -7,6 +7,9 @@ const dietColors: Record<string, string> = {
   'non-veg': 'bg-red-100 text-red-800',
 }
 
+const [expandedDesc, setExpandedDesc] = useState<Record<number, boolean>>({})
+
+
 export default function MenuPage() {
   const [products, setProducts] = useState<any[]>([])
   const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
@@ -127,10 +130,31 @@ categories.sort((a, b) => {
                       </span>
                     )}
                   </div>
+
                   {item.description && (
-                    <p className="text-sm text-gray-700">{item.description}</p>
-                  )}
-                  <div className="text-sm mt-auto">
+  <p className="text-sm text-gray-700">
+    {expandedDesc[item.id]
+      ? item.description
+      : item.description.slice(0, 60)}
+    {item.description.length > 60 && (
+      <button
+        className="ml-2 text-blue-600 underline text-xs"
+        onClick={() =>
+          setExpandedDesc((prev) => ({
+            ...prev,
+            [item.id]: !prev[item.id],
+          }))
+        }
+      >
+        {expandedDesc[item.id] ? 'less' : 'more'}
+      </button>
+    )}
+  </p>
+)}
+
+
+                  
+                    <div className="text-sm mt-auto">
                     {item.is_available === false ? (
                       <span className="text-red-500 font-semibold">Sold Out</span>
                     ) : item.stock_quantity !== null && item.stock_quantity <= 3 ? (
