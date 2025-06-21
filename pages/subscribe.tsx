@@ -31,6 +31,7 @@ export default function SubscribePage() {
     Thursday: {},
     Saturday: {},
   })
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -58,23 +59,18 @@ export default function SubscribePage() {
   }
 
   const decrement = (day: Day, product: Product) => {
+    const currentQty = selections[day][product.id]?.quantity || 0
     setSelections((prev) => {
-      const currentQty = prev[day][product.id]?.quantity || 0
+      const updated = { ...prev[day] }
       if (currentQty <= 1) {
-        const updated = { ...prev[day] }
         delete updated[product.id]
-        return { ...prev, [day]: updated }
+      } else {
+        updated[product.id] = {
+          product,
+          quantity: currentQty - 1,
+        }
       }
-      return {
-        ...prev,
-        [day]: {
-          ...prev[day],
-          [product.id]: {
-            product,
-            quantity: currentQty - 1,
-          },
-        },
-      }
+      return { ...prev, [day]: updated }
     })
   }
 
@@ -85,10 +81,8 @@ export default function SubscribePage() {
     }))
   }
 
-  const groupedProducts = products.reduce((acc, item) => {
-    const group = item.category || 'Misc'
-    if (!acc[group]) acc[group] = []
-    acc[group].push(item)
+  const groupedProducts = ['Artisanal Breads', 'Savouries'].reduce((acc, category) => {
+    acc[category] = products.filter((p) => p.category === category)
     return acc
   }, {} as Record<string, Product[]>)
 
@@ -134,13 +128,16 @@ export default function SubscribePage() {
           ))}
       </div>
 
-      {/* PRODUCT GRID – Grouped */}
+      {/* PRODUCT GRID – Grouped by Category */}
       {Object.entries(groupedProducts).map(([group, items]) => (
         <div key={group} className="mb-6">
           <h2 className="text-lg font-semibold mb-2">{group}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {items.map((item) => {
               const qty = selections[selectedDay][item.id]?.quantity || 0
+              const isExpanded = expandedDescriptions[item.id]
+              const shortDesc = item.description?.slice(0, 60)
+
               return (
                 <div
                   key={item.id}
@@ -149,8 +146,27 @@ export default function SubscribePage() {
                   <div className="flex justify-between items-center">
                     <h3 className="text-md font-semibold">{item.name}</h3>
                   </div>
+
+                  {/* Description */}
                   {item.description && (
-                    <p className="text-sm text-gray-700">{item.description}</p>
+                    <p className="text-sm text-gray-700">
+                      {isExpanded
+                        ? item.description
+                        : shortDesc}
+                      {item.description && item.description.length > 60 && (
+                        <button
+                          className="ml-2 text-blue-600 underline text-xs"
+                          onClick={() =>
+                            setExpandedDescriptions((prev) => ({
+                              ...prev,
+                              [item.id]: !prev[item.id],
+                            }))
+                          }
+                        >
+                          {isExpanded ? 'less' : 'more'}
+                        </button>
+                      )}
+                    </p>
                   )}
 
                   {/* Quantity Controls */}
