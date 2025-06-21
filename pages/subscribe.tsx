@@ -27,7 +27,7 @@ export default function SubscribePage() {
       const { data } = await supabase
         .from('Products')
         .select('*')
-        .in('category', ['Artisanal Bakes', 'Savories'])
+        .in('category', ['Artisanal Breads', 'Savouries'])
         .order('name')
       setProducts(data || [])
     }
