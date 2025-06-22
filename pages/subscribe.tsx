@@ -4,6 +4,9 @@ import { supabase } from '../lib/supabaseClient'
 const deliveryDays = ['Tuesday', 'Thursday', 'Saturday'] as const
 type Day = typeof deliveryDays[number]
 
+const shortDesc = item.description?.slice(0, 60) || ''
+
+
 type Product = {
   id: number
   name: string
