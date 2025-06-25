@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import dayjs from 'dayjs'
 
 const deliveryDays = ['Tuesday', 'Thursday', 'Saturday'] as const
-const deliveryDayIndexes = [2, 4, 6] // dayjs().day(): 0=Sunday, ..., 6=Saturday
+const deliveryDayIndexes = [2, 4, 6]
 
 type Day = typeof deliveryDays[number]
 
@@ -21,9 +21,8 @@ export default function SubscribePage() {
   const [recurrence, setRecurrence] = useState<'one-time' | 'weekly'>('one-time')
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
+
   const [validDates, setValidDates] = useState<Record<Day, string>>({} as any)
-  const [deliverySchedule, setDeliverySchedule] = useState<string[]>([])
-  const [showAllDates, setShowAllDates] = useState(false)
   const [selectedDay, setSelectedDay] = useState<Day>('Tuesday')
   const [selections, setSelections] = useState<DaySelections>({
     Tuesday: {},
@@ -44,48 +43,45 @@ export default function SubscribePage() {
     fetchProducts()
   }, [])
 
-  useEffect(() => {
-    if (startDate) {
-      const defaultEnd = dayjs(startDate).add(1, 'month').format('YYYY-MM-DD')
-      setEndDate(defaultEnd)
-      generateDeliverySchedule(startDate, defaultEnd)
-    }
-  }, [startDate])
-
-  useEffect(() => {
-    if (startDate && endDate) {
-      generateDeliverySchedule(startDate, endDate)
-    }
-  }, [endDate])
-
-  const generateDeliverySchedule = (start: string, end: string) => {
-    const schedule: string[] = []
-    let current = dayjs(start)
-    const last = dayjs(end)
-
-    while (current.isBefore(last) || current.isSame(last)) {
-      if (deliveryDayIndexes.includes(current.day())) {
-        schedule.push(current.format('dddd, D MMM'))
+  const generateStartDates = () => {
+    const options: { label: string; value: string }[] = []
+    let day = dayjs()
+    for (let i = 0; i < 30; i++) {
+      if (deliveryDayIndexes.includes(day.day())) {
+        options.push({ label: `${day.format('dddd')} (${day.format('DD MMM')})`, value: day.format('YYYY-MM-DD') })
       }
-      current = current.add(1, 'day')
+      day = day.add(1, 'day')
     }
+    return options
+  }
 
-    const firstThree: Record<Day, string> = {
+  const generateValidDeliveryDates = (start: string) => {
+    const base = dayjs(start)
+    const out: Record<Day, string> = {
       Tuesday: '',
       Thursday: '',
       Saturday: '',
     }
-    schedule.forEach((dateStr) => {
-      const d = dayjs(dateStr, 'dddd, D MMM')
-      const day = d.format('dddd') as Day
-      if (!firstThree[day]) {
-        firstThree[day] = d.format('YYYY-MM-DD')
+    for (let i = 0; i < 21; i++) {
+      const date = base.add(i, 'day')
+      const dayName = date.format('dddd') as Day
+      if (deliveryDays.includes(dayName) && !out[dayName]) {
+        out[dayName] = date.format('YYYY-MM-DD')
       }
-    })
-
-    setValidDates(firstThree)
-    setDeliverySchedule(schedule)
+    }
+    setValidDates(out)
   }
+
+  const handleStartDateChange = (val: string) => {
+    setStartDate(val)
+    if (recurrence === 'weekly') {
+      generateValidDeliveryDates(val)
+      const defaultEnd = dayjs(val).add(27, 'days').format('YYYY-MM-DD')
+      setEndDate(defaultEnd)
+    }
+  }
+
+  const canProceed = recurrence === 'one-time' ? startDate : (startDate && endDate)
 
   const increment = (day: Day, product: Product) => {
     setSelections((prev) => ({
@@ -119,8 +115,6 @@ export default function SubscribePage() {
     return acc
   }, {} as Record<string, Product[]>)
 
-  const canProceed = startDate && recurrence
-
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <h1 className="text-2xl mb-4">🧺 Build Your Box</h1>
@@ -152,47 +146,158 @@ export default function SubscribePage() {
         </div>
       </div>
 
-      {/* STEP 1: Start and End Dates */}
+      {/* STEP 1: Start Date */}
       <div className="mb-4">
-        <label className="block mb-1 font-medium">Start Date:</label>
-        <input
-          type="date"
+        <label className="block mb-2 font-medium">
+          {recurrence === 'one-time' ? 'Choose your delivery date:' : 'Select a start date:'}
+        </label>
+        <select
           value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          onChange={(e) => handleStartDateChange(e.target.value)}
           className="border px-3 py-2 rounded w-full"
-        />
+        >
+          <option value="">-- Choose a date --</option>
+          {generateStartDates().map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {startDate && (
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">End Date (autofilled to 1 month):</label>
+      {/* STEP 1.5: End Date (only for subscription) */}
+      {recurrence === 'weekly' && startDate && (
+        <div className="mb-6">
+          <label className="block mb-2 font-medium">End Date:</label>
           <input
             type="date"
+            className="border px-3 py-2 rounded w-full"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
           />
         </div>
       )}
 
-      {/* STEP 2: Delivery Schedule */}
-      {canProceed && (
+      {/* STEP 2: Delivery Days */}
+      {recurrence === 'weekly' && canProceed && (
         <div className="mb-6">
-          <label className="block mb-2 font-medium">Delivery Schedule:</label>
-          <ul className="text-sm text-gray-700 list-disc pl-5">
-            {(showAllDates ? deliverySchedule : deliverySchedule.slice(0, 3)).map((d, idx) => (
-              <li key={idx}>{d}</li>
+          <p className="mb-2 text-sm font-medium">Our next deliveries are planned for:</p>
+          <ul className="list-disc pl-5 text-sm text-gray-700">
+            {deliveryDays.map((day) => (
+              <li key={day}>
+                {day} ({dayjs(validDates[day]).format('DD MMM')})
+              </li>
             ))}
           </ul>
-          {deliverySchedule.length > 3 && (
-            <button
-              onClick={() => setShowAllDates(!showAllDates)}
-              className="text-blue-600 underline text-sm mt-1"
-            >
-              {showAllDates ? 'Show Less' : 'Show All'}
-            </button>
-          )}
         </div>
+      )}
+
+      {/* STEP 3: Product Picker */}
+      {canProceed && (
+        <>
+          {/* Tabs */}
+          {recurrence === 'weekly' && (
+            <>
+              <div className="flex gap-2 mb-4">
+                {deliveryDays.map((day) => (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(day)}
+                    className={`px-3 py-1 rounded-full border ${
+                      selectedDay === day
+                        ? 'bg-orange-200 border-orange-400'
+                        : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-3 text-sm text-gray-700">
+                Copy from:{' '}
+                {deliveryDays
+                  .filter((d) => d !== selectedDay)
+                  .map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => copyFromDay(d, selectedDay)}
+                      className="underline text-blue-600 mr-2"
+                    >
+                      {d}
+                    </button>
+                  ))}
+              </div>
+            </>
+          )}
+
+          {/* Grouped Products */}
+          {Object.entries(groupedProducts).map(([group, items]) => (
+            <div key={group} className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">{group}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {items.map((item) => {
+                  const qty = selections[selectedDay][item.id]?.quantity || 0
+                  const isExpanded = expandedDescriptions[item.id]
+                  const shortDesc = item.description?.slice(0, 60)
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-md font-semibold">{item.name}</h3>
+                      </div>
+
+                      {item.description && (
+                        <p className="text-sm text-gray-700">
+                          {isExpanded ? item.description : shortDesc}
+                          {item.description.length > 60 && (
+                            <button
+                              className="ml-2 text-blue-600 underline text-xs"
+                              onClick={() =>
+                                setExpandedDescriptions((prev) => ({
+                                  ...prev,
+                                  [item.id]: !prev[item.id],
+                                }))
+                              }
+                            >
+                              {isExpanded ? 'less' : 'more'}
+                            </button>
+                          )}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 mt-auto">
+                        <button
+                          onClick={() => decrement(selectedDay, item)}
+                          className="px-2 py-1 border rounded text-xl"
+                        >
+                          −
+                        </button>
+                        <span className="text-md w-6 text-center">{qty}</span>
+                        <button
+                          onClick={() => increment(selectedDay, item)}
+                          className="px-2 py-1 border rounded text-xl"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Next Button */}
+          <div className="text-right mt-8">
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600">
+              Next: Address →
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
