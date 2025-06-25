@@ -28,7 +28,8 @@ export default function SubscribePage() {
     Thursday: {},
     Saturday: {},
   })
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({}) // ✅ THIS is now correctly placed
+
 
   useEffect(() => {
     const fetchProducts = async () => {
