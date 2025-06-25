@@ -7,9 +7,6 @@ const dietColors: Record<string, string> = {
   'non-veg': 'bg-red-100 text-red-800',
 }
 
-
-
-
 export default function MenuPage() {
   const [products, setProducts] = useState<any[]>([])
   const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
@@ -17,32 +14,29 @@ export default function MenuPage() {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [expandedDesc, setExpandedDesc] = useState<Record<number, boolean>>({})
 
-
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase.from('Products').select('*').order('name')
+      const { data, error } = await supabase.from('Products').select('*').order('name')
+      if (error) {
+        console.error('Supabase fetch error:', error)
+      }
       setProducts(data || [])
     }
     fetchProducts()
   }, [])
 
- const priorityOrder = ['Artisanal Breads', 'Italian Pastries', 'Japanese Pastries']
+  const priorityOrder = ['Artisanal Breads', 'Italian Pastries', 'Japanese Pastries']
+  const categories = Array.from(new Set(products.map((p) => p.category?.toLowerCase()).filter(Boolean)))
 
-const categories = Array.from(
-  new Set(products.map((p) => p.category?.toLowerCase()))
-).filter(Boolean)
+  categories.sort((a, b) => {
+    const aIndex = priorityOrder.indexOf(a)
+    const bIndex = priorityOrder.indexOf(b)
+    if (aIndex === -1 && bIndex === -1) return a.localeCompare(b)
+    if (aIndex === -1) return 1
+    if (bIndex === -1) return -1
+    return aIndex - bIndex
+  })
 
-categories.sort((a, b) => {
-  const aIndex = priorityOrder.indexOf(a)
-  const bIndex = priorityOrder.indexOf(b)
-
-  if (aIndex === -1 && bIndex === -1) return a.localeCompare(b) // normal sort
-  if (aIndex === -1) return 1
-  if (bIndex === -1) return -1
-  return aIndex - bIndex
-})
-
-  
   const filtered = products.filter((p) => {
     const matchDiet =
       dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
@@ -133,30 +127,30 @@ categories.sort((a, b) => {
                     )}
                   </div>
 
+                  {/* Description */}
                   {item.description && (
-  <p className="text-sm text-gray-700">
-    {expandedDesc[item.id]
-      ? item.description
-      : item.description.slice(0, 60)}
-    {item.description.length > 60 && (
-      <button
-        className="ml-2 text-blue-600 underline text-xs"
-        onClick={() =>
-          setExpandedDesc((prev) => ({
-            ...prev,
-            [item.id]: !prev[item.id],
-          }))
-        }
-      >
-        {expandedDesc[item.id] ? 'less' : 'more'}
-      </button>
-    )}
-  </p>
-)}
+                    <p className="text-sm text-gray-700">
+                      {expandedDesc[item.id]
+                        ? item.description
+                        : item.description.slice(0, 60)}
+                      {item.description.length > 60 && (
+                        <button
+                          className="ml-2 text-blue-600 underline text-xs"
+                          onClick={() =>
+                            setExpandedDesc((prev) => ({
+                              ...prev,
+                              [item.id]: !prev[item.id],
+                            }))
+                          }
+                        >
+                          {expandedDesc[item.id] ? 'less' : 'more'}
+                        </button>
+                      )}
+                    </p>
+                  )}
 
-
-                  
-                    <div className="text-sm mt-auto">
+                  {/* Stock status */}
+                  <div className="text-sm mt-auto">
                     {item.is_available === false ? (
                       <span className="text-red-500 font-semibold">Sold Out</span>
                     ) : item.stock_quantity !== null && item.stock_quantity <= 3 ? (
