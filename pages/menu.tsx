@@ -16,21 +16,22 @@ export default function MenuPage() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data, error } = await supabase.from('Products').select('*').order('name')
-      if (error) {
-        console.error('Supabase fetch error:', error)
-      }
+      const { data } = await supabase.from('Products').select('*').order('name')
       setProducts(data || [])
     }
     fetchProducts()
   }, [])
 
-  const priorityOrder = ['Artisanal Breads', 'Italian Pastries', 'Japanese Pastries']
-  const categories = Array.from(new Set(products.map((p) => p.category?.toLowerCase()).filter(Boolean)))
+  const priorityOrder = ['artisanal breads', 'italian pastries', 'japanese pastries']
 
-  categories.sort((a, b) => {
+  const rawCategories = Array.from(
+    new Set(products.map((p) => p.category?.toLowerCase()))
+  ).filter(Boolean)
+
+  const sortedCategories = [...rawCategories].sort((a, b) => {
     const aIndex = priorityOrder.indexOf(a)
     const bIndex = priorityOrder.indexOf(b)
+
     if (aIndex === -1 && bIndex === -1) return a.localeCompare(b)
     if (aIndex === -1) return 1
     if (bIndex === -1) return -1
@@ -84,7 +85,7 @@ export default function MenuPage() {
         className="mb-6 px-3 py-2 border rounded-md bg-white shadow-sm text-sm"
       >
         <option value="all">All Categories</option>
-        {categories.map((cat) => (
+        {sortedCategories.map((cat) => (
           <option key={cat} value={cat}>
             {cat.charAt(0).toUpperCase() + cat.slice(1)}
           </option>
@@ -119,7 +120,8 @@ export default function MenuPage() {
                     {item.diet_type && (
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          dietColors[item.diet_type.toLowerCase()] || 'bg-gray-100 text-gray-800'
+                          dietColors[item.diet_type.toLowerCase()] ||
+                          'bg-gray-100 text-gray-800'
                         }`}
                       >
                         {item.diet_type}
@@ -149,7 +151,6 @@ export default function MenuPage() {
                     </p>
                   )}
 
-                  {/* Stock status */}
                   <div className="text-sm mt-auto">
                     {item.is_available === false ? (
                       <span className="text-red-500 font-semibold">Sold Out</span>
