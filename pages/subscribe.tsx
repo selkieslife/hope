@@ -258,9 +258,16 @@ export default function SubscribePage() {
                       key={item.id}
                       className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
                     >
-                      <div className="h-40 flex items-center justify-center overflow-hidden rounded">
-                        <img src={imagePath} alt={item.name} className="max-h-full w-auto object-contain" />
-                      </div>
+
+                      <div className="w-full h-40 flex items-center justify-center bg-white overflow-hidden rounded">
+  <img
+    src={imagePath}
+    alt={item.name}
+    className="object-contain max-h-full max-w-full"
+    style={{ maxHeight: '100%', maxWidth: '100%' }}
+  />
+</div>
+
                       <div className="flex justify-between items-center">
                         <h3 className="text-md font-semibold">{item.name}</h3>
                       </div>
