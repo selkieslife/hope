@@ -224,7 +224,7 @@ export default function SubscribePage() {
               </div>
 
               <div className="mb-3 text-sm text-gray-700">
-                Copy from:{' '}
+                Feeling lazy? Auto-fill from:{' '}
                 {deliveryDays
                   .filter((d) => d !== selectedDay)
                   .map((d) => (
