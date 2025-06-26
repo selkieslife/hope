@@ -117,7 +117,7 @@ export default function SubscribePage() {
       {/* STEP 0: Recurrence */}
       <div className="mb-4">
         <label className="block mb-2 font-medium">How often would you like this?</label>
-        <label className="block mb-2 font-medium">We deliver on Tuesdays, Thurdays & Saturdays - between 3-7pm :) </label>
+        <label className="block mb-2 font-small">We deliver on Tuesdays, Thurdays & Saturdays - between 3-7pm :) </label>
         <div className="flex gap-4">
           <label>
             <input
