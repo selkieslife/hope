@@ -239,6 +239,12 @@ export default function SubscribePage() {
                       key={item.id}
                       className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
                     >
+                      <img
+  src={`/images/subscribe/${item.name.split(' ').map(w => w[0]).join('')}.webp`}
+  alt={item.name}
+  className="w-full h-40 object-cover rounded"
+/>
+
                       <div className="flex justify-between items-center">
                         <h3 className="text-md font-semibold">{item.name}</h3>
                       </div>
