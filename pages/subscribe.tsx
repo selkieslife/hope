@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import dayjs from 'dayjs'
 
+
 const deliveryDays = [2, 4, 6] // Tue, Thu, Sat
 const deliveryDayNames = ['Tuesday', 'Thursday', 'Saturday']
+
+
 
 type Product = {
   id: number
@@ -11,6 +14,8 @@ type Product = {
   category: string
   description?: string
 }
+
+
 
 export default function SubscribePage() {
   const [products, setProducts] = useState<Product[]>([])
