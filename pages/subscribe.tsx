@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import dayjs from 'dayjs'
 
 const deliveryDays = ['Tuesday', 'Thursday', 'Saturday'] as const
-const deliveryDayIndexes = [2, 4, 6]
+const deliveryDayIndexes = [2, 4, 6] // dayjs().day(): 0=Sunday, ..., 6=Saturday
 
 type Day = typeof deliveryDays[number]
 
@@ -31,6 +31,9 @@ export default function SubscribePage() {
   })
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
 
+  const today = dayjs()
+  const minStartDate = today.format('YYYY-MM-DD')
+
   useEffect(() => {
     const fetchProducts = async () => {
       const { data } = await supabase
@@ -43,19 +46,9 @@ export default function SubscribePage() {
     fetchProducts()
   }, [])
 
-  const generateDeliveryDates = () => {
-    const options: { label: string; value: string }[] = []
-    let day = dayjs()
-    for (let i = 0; i < 60; i++) {
-      if (deliveryDayIndexes.includes(day.day())) {
-        options.push({
-          label: `${day.format('dddd')} (${day.format('DD MMM')})`,
-          value: day.format('YYYY-MM-DD'),
-        })
-      }
-      day = day.add(1, 'day')
-    }
-    return options
+  const isDeliveryDay = (date: string) => {
+    const d = dayjs(date)
+    return deliveryDayIndexes.includes(d.day())
   }
 
   const generateValidDeliveryDates = (start: string) => {
@@ -108,3 +101,216 @@ export default function SubscribePage() {
   }, {} as Record<string, Product[]>)
 
   const canProceed =
+    !!startDate &&
+    isDeliveryDay(startDate) &&
+    (recurrence === 'one-time' || (!!endDate && isDeliveryDay(endDate)))
+
+  return (
+    <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
+      <h1 className="text-2xl mb-4">🧺 Build Your Box</h1>
+
+      {/* STEP 0: Recurrence */}
+      <div className="mb-4">
+        <label className="block mb-2 font-medium">How often would you like this?</label>
+        <div className="flex gap-4">
+          <label>
+            <input
+              type="radio"
+              value="one-time"
+              checked={recurrence === 'one-time'}
+              onChange={() => {
+                setRecurrence('one-time')
+                setEndDate('')
+              }}
+              className="mr-2"
+            />
+            One-time Trial
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="weekly"
+              checked={recurrence === 'weekly'}
+              onChange={() => {
+                setRecurrence('weekly')
+                const defaultEnd = dayjs(startDate).add(1, 'month')
+                setEndDate(defaultEnd.format('YYYY-MM-DD'))
+                generateValidDeliveryDates(startDate)
+              }}
+              className="mr-2"
+            />
+            Monthly Subscription
+          </label>
+        </div>
+      </div>
+
+      {/* STEP 1: Start Date */}
+      <div className="mb-4">
+        <label className="block mb-2 font-medium">
+          {recurrence === 'one-time' ? 'Choose your delivery date:' : 'Select a start date:'}
+        </label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => {
+            const val = e.target.value
+            if (isDeliveryDay(val)) {
+              setStartDate(val)
+              if (recurrence === 'weekly') generateValidDeliveryDates(val)
+            } else {
+              alert('Please select a Tuesday, Thursday, or Saturday.')
+            }
+          }}
+          min={minStartDate}
+          className="border px-3 py-2 rounded w-full"
+        />
+      </div>
+
+      {/* STEP 2: End Date */}
+      {recurrence === 'weekly' && (
+        <div className="mb-4">
+          <label className="block mb-2 font-medium">Select an end date:</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              const val = e.target.value
+              if (isDeliveryDay(val)) setEndDate(val)
+              else alert('Please select a Tuesday, Thursday, or Saturday.')
+            }}
+            min={startDate || minStartDate}
+            className="border px-3 py-2 rounded w-full"
+          />
+        </div>
+      )}
+
+      {/* STEP 3: Delivery Summary */}
+      {canProceed && recurrence === 'weekly' && (
+        <div className="mb-6">
+          <p className="mb-2 text-sm">Our next deliveries are planned for:</p>
+          <ul className="list-disc pl-5 text-sm text-gray-700">
+            {Object.entries(validDates)
+              .sort(([, a], [, b]) => dayjs(a).unix() - dayjs(b).unix())
+              .map(([day, date]) => (
+                <li key={day}>
+                  {day} ({dayjs(date).format('DD MMM')})
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+
+      {/* STEP 4: Product Picker */}
+      {canProceed && (
+        <>
+          {recurrence === 'weekly' && (
+            <>
+              <div className="flex gap-2 mb-4">
+                {deliveryDays.map((day) => (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(day)}
+                    className={`px-3 py-1 rounded-full border ${
+                      selectedDay === day
+                        ? 'bg-orange-200 border-orange-400'
+                        : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-3 text-sm text-gray-700">
+                Copy from:{' '}
+                {deliveryDays
+                  .filter((d) => d !== selectedDay)
+                  .map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => copyFromDay(d, selectedDay)}
+                      className="underline text-blue-600 mr-2"
+                    >
+                      {d}
+                    </button>
+                  ))}
+              </div>
+            </>
+          )}
+
+          {/* Grouped Product Display */}
+          {Object.entries(groupedProducts).map(([group, items]) => (
+            <div key={group} className="mb-6">
+              <h2 className="text-lg font-semibold mb-2">{group}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {items.map((item) => {
+                  const qty = selections[selectedDay][item.id]?.quantity || 0
+                  const isExpanded = expandedDescriptions[item.id]
+                  const shortDesc = item.description?.slice(0, 60)
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
+                    >
+                      {item.image && (
+                        <img
+                          src={`/images/subscribe/${item.image}`}
+                          alt={item.name}
+                          className="w-full h-48 object-cover rounded-md"
+                        />
+                      )}
+
+                      <h3 className="text-md font-semibold">{item.name}</h3>
+
+                      {item.description && (
+                        <p className="text-sm text-gray-700">
+                          {isExpanded ? item.description : shortDesc}
+                          {item.description.length > 60 && (
+                            <button
+                              className="ml-2 text-blue-600 underline text-xs"
+                              onClick={() =>
+                                setExpandedDescriptions((prev) => ({
+                                  ...prev,
+                                  [item.id]: !prev[item.id],
+                                }))
+                              }
+                            >
+                              {isExpanded ? 'less' : 'more'}
+                            </button>
+                          )}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-2 mt-auto">
+                        <button
+                          onClick={() => decrement(selectedDay, item)}
+                          className="px-2 py-1 border rounded text-xl"
+                        >
+                          −
+                        </button>
+                        <span className="text-md w-6 text-center">{qty}</span>
+                        <button
+                          onClick={() => increment(selectedDay, item)}
+                          className="px-2 py-1 border rounded text-xl"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          <div className="text-right mt-8">
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-full hover:bg-orange-600">
+              Next: Address →
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
