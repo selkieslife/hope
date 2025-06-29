@@ -12,6 +12,7 @@ type Product = {
   name: string
   category: string
   description?: string
+  price?: number
 }
 
 type DaySelections = Record<Day, { [productId: number]: { product: Product; quantity: number } }>
@@ -28,7 +29,6 @@ export default function SubscribePage() {
     Saturday: {},
   })
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
-  const [showSummary, setShowSummary] = useState(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -100,17 +100,14 @@ export default function SubscribePage() {
     setSelections((prev) => ({ ...prev, [to]: { ...prev[from] } }))
   }
 
-  const summaryItems = Object.entries(selections)
-    .flatMap(([day, items]) =>
-      Object.values(items).map(({ product, quantity }) => ({
-        day,
-        name: product.name,
-        quantity,
-      }))
+  const getDayTotal = (day: Day) => {
+    return Object.values(selections[day]).reduce(
+      (sum, item) => sum + (item.product.price || 0) * item.quantity,
+      0
     )
-    .sort((a, b) => a.day.localeCompare(b.day))
+  }
 
-  const isDateValid = (date: string) => deliveryDayIndexes.includes(dayjs(date).day())
+  const total = deliveryDays.reduce((sum, day) => sum + getDayTotal(day), 0)
 
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
@@ -182,16 +179,13 @@ export default function SubscribePage() {
         <>
           {recurrence === 'weekly' && (
             <>
-              {/* Tabs */}
               <div className="flex gap-2 mb-4">
                 {deliveryDays.map((day) => (
                   <button
                     key={day}
                     onClick={() => setSelectedDay(day)}
                     className={`px-3 py-1 rounded-full border ${
-                      selectedDay === day
-                        ? 'bg-orange-200 border-orange-400'
-                        : 'bg-white border-gray-300'
+                      selectedDay === day ? 'bg-orange-200 border-orange-400' : 'bg-white border-gray-300'
                     }`}
                   >
                     {day}
@@ -199,7 +193,6 @@ export default function SubscribePage() {
                 ))}
               </div>
 
-              {/* Copy from */}
               <div className="mb-3 text-sm text-gray-700">
                 Copy from:{' '}
                 {deliveryDays
@@ -217,7 +210,6 @@ export default function SubscribePage() {
             </>
           )}
 
-          {/* Product Grid */}
           {Object.entries(groupedProducts).map(([group, items]) => (
             <div key={group} className="mb-6">
               <h2 className="text-lg font-semibold mb-2">{group}</h2>
@@ -232,9 +224,10 @@ export default function SubscribePage() {
                     <div key={item.id} className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2">
                       <h3 className="text-md font-semibold">{item.name}</h3>
                       <p className="text-sm text-gray-700">
-                        {expandedDescriptions[item.id]
-                          ? item.description
-                          : item.description?.slice(0, 60)}
+                        ₹{item.price?.toFixed(0)}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {expandedDescriptions[item.id] ? item.description : item.description?.slice(0, 60)}
                         {item.description && item.description.length > 60 && (
                           <button
                             className="ml-2 text-blue-600 underline text-xs"
@@ -249,7 +242,6 @@ export default function SubscribePage() {
                           </button>
                         )}
                       </p>
-
                       <div className="flex items-center gap-2 mt-auto">
                         <button
                           onClick={() =>
@@ -282,22 +274,33 @@ export default function SubscribePage() {
         </>
       )}
 
-      {/* Step 3: Summary + Razorpay CTA */}
+      {/* Step 3: Summary + Razorpay */}
       {startDate && (
         <div className="mt-10">
           <h2 className="text-lg font-semibold mb-4">🧾 Order Summary</h2>
-          <ul className="text-sm mb-4">
-            {summaryItems.map((item, i) => (
-              <li key={i}>
-                {item.day}: {item.name} × {item.quantity}
-              </li>
-            ))}
-          </ul>
+          {deliveryDays.map((day) => (
+            <div key={day} className="mb-4">
+              <h3 className="font-medium text-md mb-1">{day}</h3>
+              <ul className="text-sm text-gray-800">
+                {Object.values(selections[day]).map(({ product, quantity }) => (
+                  <li key={product.id} className="flex justify-between">
+                    {product.name} × {quantity}
+                    <span>₹{(product.price || 0) * quantity}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-right font-medium mt-1">Day Total: ₹{getDayTotal(day)}</p>
+            </div>
+          ))}
+
+          <hr className="my-4" />
+          <p className="text-right font-bold text-lg">Total: ₹{total}</p>
+
           <a
             href="https://razorpay.me/@selkies"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700"
+            className="inline-block mt-4 bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700"
           >
             Proceed to Payment
           </a>
