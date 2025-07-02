@@ -1,4 +1,8 @@
 // pages/subscribe.tsx
+
+// Added comment to force Vercel rebuild
+
+
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import dayjs from 'dayjs'
