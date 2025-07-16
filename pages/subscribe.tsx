@@ -154,13 +154,26 @@ export default function SubscribePage() {
     rzp.open()
   }
 
-  const groupedProducts = ['Artisanal Breads', 'Savouries'].reduce((acc, cat) => {
+  
+//  const groupedProducts = ['Artisanal Breads', 'Savouries'].reduce((acc, cat) => {
+
+  const groupedProducts = ['Artisanal Breads'].reduce((acc, cat) => {
     acc[cat] = products.filter((p) => p.category === cat)
     return acc
   }, {} as Record<string, Product[]>)
 
   const canProceed = startDate && recurrence
 
+// Utility to get image file path from product name (based on initials)
+const getImagePath = (name: string) => {
+  const initials = name
+    .split(' ')
+    .map((word) => word[0].toUpperCase())
+    .join('')
+  return `/images/subscribe/${initials}.webp`
+}
+
+  
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
@@ -210,7 +223,26 @@ export default function SubscribePage() {
                   const shortDesc = item.description?.slice(0, 60)
 
                   return (
-                    <div key={item.id} className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2">
+                    <div key={item.id} className="border rounded-xl shadow-sm bg-white flex flex-col gap-2 overflow-hidden">
+  {/* IMAGE */}
+  <img
+    src={getImagePath(item.name)}
+    alt={item.name}
+    className="w-full h-40 object-cover"
+    onError={(e) => {
+      (e.target as HTMLImageElement).src = '/images/subscribe/placeholder.webp'
+    }}
+  />
+
+  {/* PRODUCT INFO */}
+  <div className="p-4 flex flex-col gap-2 h-full">
+    <div className="flex justify-between items-center">
+      <h3 className="text-md font-semibold">{item.name}</h3>
+      <span className="text-sm font-medium text-orange-700">₹{item.price}</span>
+    </div>
+
+
+    
                       <div className="flex justify-between items-center">
                         <h3 className="text-md font-semibold">{item.name}</h3>
                         <span className="text-sm font-medium text-orange-700">₹{item.price}</span>
