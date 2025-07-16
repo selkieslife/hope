@@ -10,7 +10,6 @@ export default function Home() {
         <title>Selkie’s – Global Bakes</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
-
       
       <header className="hero">
         <nav className="navbar">
