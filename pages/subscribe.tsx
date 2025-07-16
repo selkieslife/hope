@@ -277,6 +277,37 @@ export default function SubscribePage() {
           </div>
         </>
       )}
+
+            {/* FOOTER LINKS */}
+      <div className="mt-12 border-t pt-4 text-sm text-gray-600 space-y-1 text-center">
+        <p>
+          <a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600">
+            Privacy Policy
+          </a>
+        </p>
+        <p>
+          <a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600">
+            Terms and Conditions
+          </a>
+        </p>
+        <p>
+          <a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/refund" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600">
+            Cancellation and Refund
+          </a>
+        </p>
+        <p>
+          <a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/shipping" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600">
+            Shipping and Delivery
+          </a>
+        </p>
+        <p>
+          <a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/contact_us" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-600">
+            Contact Us
+          </a>
+        </p>
+      </div>
+
+      
     </div>
   )
 }
