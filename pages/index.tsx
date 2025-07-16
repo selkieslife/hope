@@ -70,8 +70,14 @@ export default function Home() {
           ))}
         </Swiper>
 
-        <button className="cta-button">Explore Menu</button>
-      </header>
+
+        import Link from 'next/link'
+
+        <Link href="/subscribe">
+        <button className="cta-button">Subscribe</button>
+        </Link>
+
+        </header>
 
       <style jsx>{`
         * {
