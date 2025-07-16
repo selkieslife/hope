@@ -18,6 +18,7 @@ export default function Home() {
           <div>🛒</div>
         </nav>
 
+        
         <Swiper
           modules={[Autoplay]}
           autoplay={{ delay: 5000 }}
