@@ -155,12 +155,31 @@ export default function SubscribePage() {
   }
 
   
-//  const groupedProducts = ['Artisanal Breads', 'Savouries'].reduce((acc, cat) => {
+// 1. Add groupedProducts logic after products are loaded
+const groupedProducts = products.reduce((acc, p) => {
+  acc[p.category] = acc[p.category] || []
+  acc[p.category].push(p)
+  return acc
+}, {} as Record<string, Product[]>)
 
-  const groupedProducts = ['Artisanal Breads'].reduce((acc, cat) => {
-    acc[cat] = products.filter((p) => p.category === cat)
-    return acc
-  }, {} as Record<string, Product[]>)
+// 2. Add Copy from... UI in the product picker, just above product cards
+<div className="flex items-center gap-2 mb-2">
+  <span className="text-sm">Copy selection from:</span>
+  {deliveryDays.filter((d) => d !== selectedDay).map((d) => (
+    <button
+      key={d}
+      className="px-2 py-1 border rounded text-xs bg-gray-100 hover:bg-orange-100"
+      onClick={() => {
+        setSelections((prev) => ({
+          ...prev,
+          [selectedDay]: { ...prev[d] },
+        }))
+      }}
+    >
+      {d}
+    </button>
+  ))}
+</div>
 
   const canProceed = startDate && recurrence
 
@@ -289,18 +308,32 @@ const getImagePath = (name: string) => {
                     <li key={s.product.id}>{s.product.name} × {s.quantity}</li>
                   ))}
                 </ul>
+                <p className="text-xs mt-1">Delivery Date: {validDates[selectedDay]}</p>
               </div>
             ) : (
-              deliveryDays.map((d) => (
-                <div key={d} className="mb-3">
-                  <h3 className="font-medium">{d}</h3>
-                  <ul className="text-sm">
-                    {Object.values(selections[d]).map((s) => (
-                      <li key={s.product.id}>{s.product.name} × {s.quantity}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))
+              <>
+                <p className="text-xs mb-2">Total Delivery Days: {(() => {
+                  if (!startDate || !endDate) return 0
+                  let count = 0
+                  let d = dayjs(startDate)
+                  const end = dayjs(endDate)
+                  while (d.isBefore(end) || d.isSame(end)) {
+                    if (deliveryDays.includes(d.format('dddd') as Day)) count++
+                    d = d.add(1, 'day')
+                  }
+                  return count
+                })()}</p>
+                {deliveryDays.map((d) => (
+                  <div key={d} className="mb-3">
+                    <h3 className="font-medium">{d} ({validDates[d]})</h3>
+                    <ul className="text-sm">
+                      {Object.values(selections[d]).map((s) => (
+                        <li key={s.product.id}>{s.product.name} × {s.quantity}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </>
             )}
             <p className="font-semibold mt-2">Total: ₹{calculateTotal()}</p>
             <button onClick={handlePayment} className="mt-4 w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600">
