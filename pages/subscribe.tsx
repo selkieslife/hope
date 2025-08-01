@@ -1,5 +1,3 @@
-//updated
-
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import dayjs from 'dayjs'
@@ -125,7 +123,7 @@ export default function SubscribePage() {
       key: 'rzp_live_wwVL2OoYowGOtO',
       amount: total * 100,
       currency: 'INR',
-      name: 'Selkie’s',
+      name: 'Selkie\'s',
       description: recurrence === 'one-time' ? 'Trial Order' : 'Monthly Subscription',
       handler: async function (response: any) {
         await supabase.from('Orders').insert([
@@ -154,45 +152,24 @@ export default function SubscribePage() {
     rzp.open()
   }
 
-  
-// 1. Add groupedProducts logic after products are loaded
-const groupedProducts = products.reduce((acc, p) => {
-  acc[p.category] = acc[p.category] || []
-  acc[p.category].push(p)
-  return acc
-}, {} as Record<string, Product[]>)
-
-// 2. Add Copy from... UI in the product picker, just above product cards
-<div className="flex items-center gap-2 mb-2">
-  <span className="text-sm">Copy selection from:</span>
-  {deliveryDays.filter((d) => d !== selectedDay).map((d) => (
-    <button
-      key={d}
-      className="px-2 py-1 border rounded text-xs bg-gray-100 hover:bg-orange-100"
-      onClick={() => {
-        setSelections((prev) => ({
-          ...prev,
-          [selectedDay]: { ...prev[d] },
-        }))
-      }}
-    >
-      {d}
-    </button>
-  ))}
-</div>
+  // Group products by category
+  const groupedProducts = products.reduce((acc, p) => {
+    acc[p.category] = acc[p.category] || []
+    acc[p.category].push(p)
+    return acc
+  }, {} as Record<string, Product[]>)
 
   const canProceed = startDate && recurrence
 
-// Utility to get image file path from product name (based on initials)
-const getImagePath = (name: string) => {
-  const initials = name
-    .split(' ')
-    .map((word) => word[0].toUpperCase())
-    .join('')
-  return `/images/subscribe/${initials}.webp`
-}
+  // Utility to get image file path from product name (based on initials)
+  const getImagePath = (name: string) => {
+    const initials = name
+      .split(' ')
+      .map((word) => word[0].toUpperCase())
+      .join('')
+    return `/images/subscribe/${initials}.webp`
+  }
 
-  
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
@@ -232,6 +209,25 @@ const getImagePath = (name: string) => {
             ))}
           </div>
 
+          {/* Copy from... UI */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm">Copy selection from:</span>
+            {deliveryDays.filter((d) => d !== selectedDay).map((d) => (
+              <button
+                key={d}
+                className="px-2 py-1 border rounded text-xs bg-gray-100 hover:bg-orange-100"
+                onClick={() => {
+                  setSelections((prev) => ({
+                    ...prev,
+                    [selectedDay]: { ...prev[d] },
+                  }))
+                }}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+
           {Object.entries(groupedProducts).map(([group, items]) => (
             <div key={group} className="mb-6">
               <h2 className="text-lg font-semibold mb-2">{group}</h2>
@@ -243,43 +239,37 @@ const getImagePath = (name: string) => {
 
                   return (
                     <div key={item.id} className="border rounded-xl shadow-sm bg-white flex flex-col gap-2 overflow-hidden">
-  {/* IMAGE */}
-  <img
-    src={getImagePath(item.name)}
-    alt={item.name}
-    className="w-full h-40 object-cover"
-    onError={(e) => {
-      (e.target as HTMLImageElement).src = '/images/subscribe/placeholder.webp'
-    }}
-  />
+                      {/* IMAGE */}
+                      <img
+                        src={getImagePath(item.name)}
+                        alt={item.name}
+                        className="w-full h-40 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/subscribe/placeholder.webp'
+                        }}
+                      />
 
-  {/* PRODUCT INFO */}
-  <div className="p-4 flex flex-col gap-2 h-full">
-    <div className="flex justify-between items-center">
-      <h3 className="text-md font-semibold">{item.name}</h3>
-      <span className="text-sm font-medium text-orange-700">₹{item.price}</span>
-    </div>
-
-
-    
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-md font-semibold">{item.name}</h3>
-                        <span className="text-sm font-medium text-orange-700">₹{item.price}</span>
-                      </div>
-                      {item.description && (
-                        <p className="text-sm text-gray-700">
-                          {isExpanded ? item.description : shortDesc}
-                          {item.description.length > 60 && (
-                            <button className="ml-2 text-blue-600 underline text-xs" onClick={() =>
-                              setExpandedDescriptions((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
-                            }>{isExpanded ? 'less' : 'more'}</button>
-                          )}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2 mt-auto">
-                        <button onClick={() => decrement(selectedDay, item)} className="px-2 py-1 border rounded text-xl">−</button>
-                        <span className="text-md w-6 text-center">{qty}</span>
-                        <button onClick={() => increment(selectedDay, item)} className="px-2 py-1 border rounded text-xl">+</button>
+                      {/* PRODUCT INFO */}
+                      <div className="p-4 flex flex-col gap-2 h-full">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-md font-semibold">{item.name}</h3>
+                          <span className="text-sm font-medium text-orange-700">₹{item.price}</span>
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-gray-700">
+                            {isExpanded ? item.description : shortDesc}
+                            {item.description.length > 60 && (
+                              <button className="ml-2 text-blue-600 underline text-xs" onClick={() =>
+                                setExpandedDescriptions((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
+                              }>{isExpanded ? 'less' : 'more'}</button>
+                            )}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-auto">
+                          <button onClick={() => decrement(selectedDay, item)} className="px-2 py-1 border rounded text-xl">−</button>
+                          <span className="text-md w-6 text-center">{qty}</span>
+                          <button onClick={() => increment(selectedDay, item)} className="px-2 py-1 border rounded text-xl">+</button>
+                        </div>
                       </div>
                     </div>
                   )
@@ -341,20 +331,16 @@ const getImagePath = (name: string) => {
             </button>
           </div>
 
-                {/* Footer Links */}
-<div className="text-xs text-center text-gray-600 mt-10 space-y-1">
-  <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/privacy" target="_blank" className="underline">Privacy Policy</a></p>
-  <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/terms" target="_blank" className="underline">Terms and Conditions</a></p>
-  <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/refund" target="_blank" className="underline">Cancellation and Refund</a></p>
-  <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/shipping" target="_blank" className="underline">Shipping and Delivery</a></p>
-  <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/contact_us" target="_blank" className="underline">Contact Us</a></p>
-</div>
-
+          {/* Footer Links */}
+          <div className="text-xs text-center text-gray-600 mt-10 space-y-1">
+            <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/privacy" target="_blank" className="underline">Privacy Policy</a></p>
+            <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/terms" target="_blank" className="underline">Terms and Conditions</a></p>
+            <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/refund" target="_blank" className="underline">Cancellation and Refund</a></p>
+            <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/shipping" target="_blank" className="underline">Shipping and Delivery</a></p>
+            <p><a href="https://merchant.razorpay.com/policy/QeyoJa8QXcrDEq/contact_us" target="_blank" className="underline">Contact Us</a></p>
+          </div>
         </>
       )}
-
-
-
-              
+    </div>
   )
 }
