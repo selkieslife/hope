@@ -37,7 +37,7 @@ export default function SubscribePage() {
       const { data } = await supabase
         .from('Products')
         .select('*')
-        .in('category', ['Artisanal Breads', 'Savouries'])
+        .in('category', ['Artisanal Breads'])
         .order('name')
       setProducts(data || [])
     }
@@ -185,6 +185,62 @@ export default function SubscribePage() {
       </div>
 
       {/* STEP 1: Dates */}
+     {/* PRODUCT DROPDOWN AFTER DATE SELECTION */}
+{startDate && (
+  <div
+    className="mb-4 transition-all duration-500 ease-out opacity-0 translate-y-3 animate-[fadeSlideUp_.5s_ease-out_forwards]"
+  >
+    {/* Fancy Dropdown with Images */}
+{startDate && (
+  <div
+    className="mb-4 transition-all duration-500 ease-out opacity-0 translate-y-3 animate-[fadeSlideUp_.5s_ease-out_forwards]"
+  >
+    <label className="block mb-2 font-medium">Choose a product:</label>
+
+    <div className="relative">
+      <button
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="border w-full px-3 py-2 rounded bg-white flex justify-between items-center"
+      >
+        <span>{selectedProduct ? selectedProduct.name : "Select a product"}</span>
+        <span>▼</span>
+      </button>
+
+      {dropdownOpen && (
+        <div className="absolute z-20 bg-white border rounded mt-1 max-h-60 overflow-y-auto shadow-lg w-full animate-[fadeSlideUp_.3s_ease-out_forwards]">
+          {products.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center gap-3 px-3 py-2 hover:bg-orange-100 cursor-pointer transition"
+              onClick={() => {
+                setSelectedProduct(p)
+                increment(selectedDay, p)
+                setDropdownOpen(false)
+              }}
+            >
+              <img
+                src={getImagePath(p.name)}
+                className="w-10 h-10 rounded object-cover"
+                onError={(e) =>
+                  (e.target as HTMLImageElement).src =
+                    '/images/subscribe/placeholder.webp'
+                }
+              />
+              <div>
+                <p className="font-medium">{p.name}</p>
+                <p className="text-sm text-gray-500">₹{p.price}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+  </div>
+)}
+
       <div className="mb-4">
         <label className="block mb-2 font-medium">Select a start date:</label>
         <select value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded w-full">
@@ -344,3 +400,15 @@ export default function SubscribePage() {
     </div>
   )
 }
+<style jsx>{`
+  @keyframes fadeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`}</style>
