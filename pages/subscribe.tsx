@@ -31,6 +31,8 @@ export default function SubscribePage() {
   })
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
   const [address, setAddress] = useState({ name: '', phone: '', line: '', pin: '' })
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+const [selectedProduct, setSelectedProduct] = useState<any>(null)
 
   useEffect(() => {
     const fetchProducts = async () => {
