@@ -402,15 +402,4 @@ const [selectedProduct, setSelectedProduct] = useState<any>(null)
     </div>
   )
 }
-<style jsx>{`
-  @keyframes fadeSlideUp {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`}</style>
+
