@@ -175,6 +175,19 @@ const [selectedProduct, setSelectedProduct] = useState<any>(null)
   return (
     <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      {/* Place keyframes here */}
+    <style jsx>{`
+      @keyframes fadeSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `}</style>
       <h1 className="text-2xl mb-4">🧺 Build Your Box</h1>
 
       {/* STEP 0: Recurrence */}
