@@ -1,127 +1,112 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-const dietColors: Record<string, string> = {
+const dietColors = {
   veg: 'bg-green-100 text-green-800',
   egg: 'bg-yellow-100 text-yellow-800',
   'non-veg': 'bg-red-100 text-red-800',
 }
 
 export default function MenuPage() {
-  const [products, setProducts] = useState<any[]>([])
-  const [dietFilter, setDietFilter] = useState<'all' | 'veg' | 'egg' | 'non-veg'>('all')
+  const [products, setProducts] = useState([])
+  const [dietFilter, setDietFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
-  const [expandedDesc, setExpandedDesc] = useState<Record<number, boolean>>({})
+  const [expandedGroups, setExpandedGroups] = useState({})
+  const [expandedDesc, setExpandedDesc] = useState({})
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase.from('Products').select('*').order('name')
-      setProducts(data || [])
+      const { data, error } = await supabase.from('Products').select('*').order('name')
+      if (!error) setProducts(data || [])
     }
     fetchProducts()
   }, [])
 
   const priorityOrder = ['artisanal breads', 'italian pastries', 'japanese pastries']
 
-  const rawCategories = Array.from(
-    new Set(products.map((p) => p.category?.toLowerCase()))
-  ).filter(Boolean)
+  const rawCategories = [...new Set(products.map((p) => p.category?.toLowerCase()))].filter(Boolean)
 
   const sortedCategories = [...rawCategories].sort((a, b) => {
-    const aIndex = priorityOrder.indexOf(a)
-    const bIndex = priorityOrder.indexOf(b)
-
-    if (aIndex === -1 && bIndex === -1) return a.localeCompare(b)
-    if (aIndex === -1) return 1
-    if (bIndex === -1) return -1
-    return aIndex - bIndex
+    const ai = priorityOrder.indexOf(a)
+    const bi = priorityOrder.indexOf(b)
+    if (ai === -1 && bi === -1) return a.localeCompare(b)
+    if (ai === -1) return 1
+    if (bi === -1) return -1
+    return ai - bi
   })
 
   const filtered = products.filter((p) => {
-    const matchDiet =
-      dietFilter === 'all' || (p.diet_type && p.diet_type.toLowerCase() === dietFilter)
-    const matchCategory =
-      categoryFilter === 'all' || (p.category && p.category.toLowerCase() === categoryFilter)
+    const matchDiet = dietFilter === 'all' || p.diet_type?.toLowerCase() === dietFilter
+    const matchCategory = categoryFilter === 'all' || p.category?.toLowerCase() === categoryFilter
     return matchDiet && matchCategory
   })
 
   const grouped = filtered.reduce((acc, item) => {
-    const groupKey = (item.subcategory || item.category || 'Misc').trim()
-    if (!acc[groupKey]) acc[groupKey] = []
-    acc[groupKey].push(item)
+    const key = item.subcategory || item.category || 'Misc'
+    acc[key] = acc[key] || []
+    acc[key].push(item)
     return acc
-  }, {} as Record<string, any[]>)
-
-  const toggleGroup = (group: string) => {
-    setExpandedGroups((prev) => ({ ...prev, [group]: !prev[group] }))
-  }
+  }, {})
 
   return (
-    <div className="min-h-screen bg-[#fffaf5] p-4 font-serif">
-      <h1 className="text-2xl mb-4">Explore Our Global Bakes</h1>
+    <div className="min-h-screen p-4 bg-[#fffaf5]">
+      <h1 className="text-2xl font-serif mb-4">Explore Our Global Bakes</h1>
 
-      {/* DIET FILTER */}
-      <div className="flex gap-2 mb-3 text-sm flex-wrap">
+      {/* Filters */}
+      <div className="flex gap-2 mb-4">
         {['all', 'veg', 'egg', 'non-veg'].map((type) => (
           <button
             key={type}
-            onClick={() => setDietFilter(type as any)}
+            onClick={() => setDietFilter(type)}
             className={`px-3 py-1 rounded-full border ${
-              dietFilter === type
-                ? 'bg-orange-200 border-orange-400'
-                : 'bg-white border-gray-300'
+              dietFilter === type ? 'bg-orange-200 border-orange-400' : 'bg-white'
             }`}
           >
-            {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+            {type}
           </button>
         ))}
       </div>
 
-      {/* CATEGORY DROPDOWN */}
       <select
+        className="mb-6 px-3 py-2 rounded border bg-white shadow-sm"
         value={categoryFilter}
         onChange={(e) => setCategoryFilter(e.target.value)}
-        className="mb-6 px-3 py-2 border rounded-md bg-white shadow-sm text-sm"
       >
         <option value="all">All Categories</option>
         {sortedCategories.map((cat) => (
           <option key={cat} value={cat}>
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {cat}
           </option>
         ))}
       </select>
 
-      {/* EMPTY STATE */}
-      {filtered.length === 0 && (
-        <p className="text-gray-600 text-sm italic">No products match this filter.</p>
-      )}
+      {/* Empty */}
+      {filtered.length === 0 && <p>No products found.</p>}
 
-      {/* GROUPED PRODUCTS */}
+      {/* Groups */}
       {Object.keys(grouped).map((group) => (
-        <div key={group} className="mb-6">
+        <div className="mb-6" key={group}>
           <button
-            onClick={() => toggleGroup(group)}
-            className="w-full text-left text-lg font-semibold mb-2 flex items-center justify-between bg-gray-100 px-4 py-2 rounded-md"
+            onClick={() =>
+              setExpandedGroups((prev) => ({ ...prev, [group]: !prev[group] }))
+            }
+            className="w-full text-left text-lg font-semibold bg-gray-100 px-4 py-2 rounded-md flex justify-between"
           >
             {group}
             <span>{expandedGroups[group] ? '−' : '+'}</span>
           </button>
 
           {expandedGroups[group] && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               {grouped[group].map((item) => (
-                <div
-                  key={item.id}
-                  className="border rounded-xl p-4 shadow-sm bg-white flex flex-col gap-2"
-                >
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-md font-semibold">{item.name}</h3>
+                <div key={item.id} className="border p-4 rounded-xl shadow-sm bg-white">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-semibold">{item.name}</h3>
+
                     {item.diet_type && (
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
-                          dietColors[item.diet_type.toLowerCase()] ||
-                          'bg-gray-100 text-gray-800'
+                          dietColors[item.diet_type.toLowerCase()]
                         }`}
                       >
                         {item.diet_type}
@@ -129,37 +114,35 @@ export default function MenuPage() {
                     )}
                   </div>
 
-                  {/* Description */}
-                  {item.description && (
-                    <p className="text-sm text-gray-700">
-                      {expandedDesc[item.id]
-                        ? item.description
-                        : item.description.slice(0, 60)}
-                      {item.description.length > 60 && (
-                        <button
-                          className="ml-2 text-blue-600 underline text-xs"
-                          onClick={() =>
-                            setExpandedDesc((prev) => ({
-                              ...prev,
-                              [item.id]: !prev[item.id],
-                            }))
-                          }
-                        >
-                          {expandedDesc[item.id] ? 'less' : 'more'}
-                        </button>
-                      )}
-                    </p>
-                  )}
+                  <p className="text-sm text-gray-700">
+                    {expandedDesc[item.id]
+                      ? item.description
+                      : item.description?.slice(0, 60)}
 
-                  <div className="text-sm mt-auto">
+                    {item.description?.length > 60 && (
+                      <button
+                        className="ml-2 text-blue-600 underline text-xs"
+                        onClick={() =>
+                          setExpandedDesc((prev) => ({
+                            ...prev,
+                            [item.id]: !prev[item.id],
+                          }))
+                        }
+                      >
+                        {expandedDesc[item.id] ? 'less' : 'more'}
+                      </button>
+                    )}
+                  </p>
+
+                  <div className="text-sm mt-2">
                     {item.is_available === false ? (
-                      <span className="text-red-500 font-semibold">Sold Out</span>
-                    ) : item.stock_quantity !== null && item.stock_quantity <= 3 ? (
-                      <span className="text-orange-600 font-medium">
+                      <span className="text-red-500">Sold Out</span>
+                    ) : item.stock_quantity <= 3 ? (
+                      <span className="text-orange-600">
                         Only {item.stock_quantity} left!
                       </span>
                     ) : (
-                      <span className="text-green-600 font-medium">In Stock</span>
+                      <span className="text-green-600">In Stock</span>
                     )}
                   </div>
                 </div>
