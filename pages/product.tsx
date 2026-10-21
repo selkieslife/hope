@@ -1,5 +1,30 @@
 import { useState, useEffect } from "react"
 
+import { useState, useEffect } from "react"
+
+interface Product {
+  id: number
+  name: string
+  subtitle: string
+  image: string
+  taste: string
+  overview: string
+  cuisine: string
+  history: string
+  culture: string
+}
+
+const productList: Product[] = [
+  {
+    id: 1,
+    name: "French Cheese Cake",
+    subtitle: "A silky French classic with a whisper-light finish.",
+    image: "/images/subscribe/.webp",
+    taste: "",
+    overview: "...",
+    // ... rest of your fields
+  }
+]
 const productList = [
   {
     id: 1,
