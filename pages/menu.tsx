@@ -24,7 +24,7 @@ export default function MenuPage() {
 
   const priorityOrder = ['artisanal breads', 'italian pastries', 'japanese pastries']
 
-  const rawCategories = Array.from(new Set(products.map((p) => p.category?.toLowerCase()))).filter(Boolean)
+const rawCategories = Array.from(new Set(products.map((p) => p.category?.toLowerCase()))).filter(Boolean)
   
   const sortedCategories = [...rawCategories].sort((a, b) => {
     const ai = priorityOrder.indexOf(a)
