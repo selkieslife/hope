@@ -10,6 +10,7 @@ export default function Home() {
       <Head>
         <title>Selkie’s – Global Bakes</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="facebook-domain-verification" content="clf0smm60zmv0y0p623ygt0ndylwm8" />
       </Head>
       
       <header className="hero">
